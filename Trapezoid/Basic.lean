@@ -1,55 +1,7 @@
-import Mathlib
-
-notation "ℝ²" => ℝ × ℝ
-notation "μ" => MeasureTheory.volume
-
-structure Triangle where
-  A : ℝ²
-  B : ℝ²
-  C : ℝ²
-
-namespace Triangle
-
-def contained (T : Triangle) (S : Set ℝ²) :
-    Prop :=
-  {T.A, T.B, T.C} ⊆ S
-
-noncomputable
-def area (T : Triangle) : ENNReal :=
-  μ (convexHull ℝ {T.A, T.B, T.C})
-
-def isosceles (T : Triangle) : Prop :=
-  dist T.A T.B = dist T.A T.C ∨
-  dist T.A T.B = dist T.B T.C ∨
-  dist T.A T.C = dist T.B T.C
-
-end Triangle
-
-open Bornology
-
-def IsUnbounded (S : Set ℝ²) : Prop :=
-  ¬IsBounded S
-
-theorem main (S : Set ℝ²)
-    (unb : IsUnbounded S) (pos : 0 < μ S) :
-    ∃ T : Triangle, T.contained S
-    ∧ T.area = 1 ∧ T.isosceles
-   := sorry
-
-def C : ℝ := 100
+import Trapezoid.Triangle
+import Mathlib.Analysis.SpecialFunctions.PolarCoord
 
 open Metric Real
-
-lemma Lebesgue' (S : Set ℝ²) :
-    ∃ A ∈ S, ∃ ε ∈ Set.Ioo (0 : ℝ) 1,
-    μ (ball A ε ∩ S) > 0.9 * μ (ball A ε) :=
-  sorry
-
-lemma exists_O (S : Set ℝ²)
-    (unb : IsUnbounded S)
-    (A : ℝ²) (hA : A ∈ S) (M : ℝ) :
-    ∃ O ∈ S, dist O A > M :=
-  sorry
 
 noncomputable section
 
@@ -57,6 +9,7 @@ variable (ε : ℝ) (d : ℝ)
   (hε : ε ∈ Set.Ioo 0 1)
   (hd : d > (C / ε) + ε)
 
+def C : ℝ := 100
 def O : ℝ² := (0,0)
 def A : ℝ² := (d,0)
 def B := ball (A d) ε
@@ -86,9 +39,11 @@ lemma Tfp_isosceles (p : ℝ²) :
 lemma Tfp_area1 (p : ℝ²) : (Tf p).area = 1 :=
   sorry
 
+#loogle "convexHull", "image"
+
 lemma sin_ineq (x : ℝ)
-    (hx : x ∈ Set.Ioo 0 (pi / 2)) :
-    sin x < x ∧ x < (pi / 2) * sin x :=
+    (hx : x ∈ Set.Ioo 0 (π / 2)) :
+    sin x < x ∧ x < (π / 2) * sin x :=
   sorry
 
 #loogle Real.sin _ < _
