@@ -1,7 +1,10 @@
-import Mathlib.MeasureTheory.Measure.Haar.OfBasis
+import Trapezoid.Defs
 
-notation "ℝ²" => ℝ × ℝ
-notation "μ" => MeasureTheory.volume
+notation "E²" => EuclideanSpace ℝ (Fin 2)
+
+#check toEuclidean
+#check toEuclidean.toFun
+#check toEuclidean.invFun
 
 structure Triangle where
   A : ℝ²
@@ -10,15 +13,18 @@ structure Triangle where
 
 namespace Triangle
 
-def contained (T : Triangle) (S : Set ℝ²) :
-    Prop :=
+variable (T : Triangle)
+
+def contained (S : Set ℝ²) : Prop :=
   {T.A, T.B, T.C} ⊆ S
 
 noncomputable
-def area (T : Triangle) : ENNReal :=
+def area : ENNReal :=
   μ (convexHull ℝ {T.A, T.B, T.C})
 
-def isosceles (T : Triangle) : Prop :=
+-- 面積の計算、(1/2)ab sinθ
+
+def isosceles : Prop :=
   dist T.A T.B = dist T.A T.C ∨
   dist T.A T.B = dist T.B T.C ∨
   dist T.A T.C = dist T.B T.C
