@@ -125,21 +125,20 @@ lemma g_diffble (p : ℝ²) (h₀ : p.1 ≠ 0)
       · exact differentiable_phi _ h₀ h₁ h₂
       · simp
 
-def fderiv_g (p : ℝ²) :=
-  LinearMap.toContinuousLinearMap
-    (
-      (Matrix.toLin
-        (Basis.finTwoProd ℝ) (Basis.finTwoProd ℝ))
-      !![1, 0; deriv_phi p.1, 1]
-    )
+def fderiv_g (p : ℝ²) := (fst ℝ ℝ ℝ).prod (fderiv_g₂ p)
 
-lemma fderiv_g_eq' (p : ℝ²) : fderiv_g p = (fst ℝ ℝ ℝ).prod (fderiv_g₂ p) := by
-  ext
-  repeat simp [fderiv_g₂, fderiv_g, Matrix.toLin_apply, Basis.One]
+lemma fderiv_g_det : (fderiv_g p).det = 1 := by
+  have : (fderiv_g p) =
+    LinearMap.toContinuousLinearMap
+      (
+        (Matrix.toLin
+          (Basis.finTwoProd ℝ) (Basis.finTwoProd ℝ))
+        !![1, 0; deriv_phi p.1, 1]
+      ) := by ext <;> simp [fderiv_g, fderiv_g₂]
+  simp [this]
 
 lemma hasfderiv_g (p : ℝ²) (h₀ : p.1 ≠ 0) (h₁ : ¬2 / p.1 ^ 2 = -1)
     (h₂ : ¬2 / p.1 ^ 2 = 1) : HasFDerivAt g (fderiv_g p) p := by
-  rw [fderiv_g_eq']
   apply HasFDerivAt.prod
   exact hasFDerivAt_fst
   exact hasfderiv_g₂ _ h₀ h₁ h₂
@@ -147,7 +146,7 @@ lemma hasfderiv_g (p : ℝ²) (h₀ : p.1 ≠ 0) (h₁ : ¬2 / p.1 ^ 2 = -1)
 lemma g_deriv_det (p : ℝ²) (h₀ : p.1 ≠ 0) (h₁ : ¬2 / p.1 ^ 2 = -1)
     (h₂ : ¬2 / p.1 ^ 2 = 1) : (fderiv ℝ g p).det = 1 := by
   rw [HasFDerivAt.fderiv (hasfderiv_g _ h₀ h₁ h₂)]
-  simp [fderiv_g]
+  apply fderiv_g_det
 
 lemma polarCoord_symm_deriv_det (p : ℝ²) :
     (fderiv ℝ polarCoord.symm p).det = p.1 := by
