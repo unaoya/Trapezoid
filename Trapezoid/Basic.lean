@@ -1,5 +1,6 @@
 import Trapezoid.Triangle
 import Trapezoid.Jacobian
+import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
 
 open Metric Real
 
@@ -11,39 +12,41 @@ noncomputable section
 -- ここでは特別な場合の証明を行う。
 -- 帰着の議論はmain.leanにある。
 
-lemma f_r (p : ℝ²)
-    (h : g (polarCoord p) ∈ polarCoord.target) :
-    (polarCoord (f p)).1 = (polarCoord p).1 := by
-  have : polarCoord (f p) = g (polarCoord p) := by
-    apply polarCoord.right_inv' h
-  rw [this]
-  rfl
+section
 
-lemma dist_eq_r (p : ℝ²) :
-    dist O p = (polarCoord p).1 := by
+variable (p : ℝ²)
+
+lemma dist_eq_r : dist O p = (polarCoord p).1 := by
   rw [O, euc_dist_eq]
   rfl
 
-lemma f_isom (p : ℝ²)
-    (h : g (polarCoord p) ∈ polarCoord.target) :
+lemma f_r (hp : g (polarCoord p) ∈ polarCoord.target) : (polarCoord (f p)).1 = (polarCoord p).1 := by
+  have : polarCoord (f p) = g (polarCoord p) := by
+    apply polarCoord.right_inv'
+    exact hp
+  rw [this]
+  rfl
+
+lemma f_isom (hp : g (polarCoord p) ∈ polarCoord.target) :
     dist O p = dist O (f p) := by
   repeat rw [dist_eq_r]
-  exact (f_r p h).symm
+  exact (f_r p hp).symm
 
-def Tf (p : ℝ²) : Triangle where
+def Tf : Triangle where
   A := O
   B := p
   C := f p
 
-lemma Tfp_isosceles (p : ℝ²)
-    (h : g (polarCoord p) ∈ polarCoord.target) :
-    (Tf p).isosceles :=
-  Or.symm (Or.inr (f_isom p h))
+lemma Tfp_isosceles (hp : g (polarCoord p) ∈ polarCoord.target) :
+    (Tf p).isIsosceles :=
+  Or.symm (Or.inr (f_isom p hp))
 
-lemma Tfp_area1 (p : ℝ²) : (Tf p).area = 1 :=
+lemma Tfp_area1 : (Tf p).area = 1 := by
   sorry
 
 #loogle "convexHull", "image"
+
+end
 
 lemma sin_ineq (x : ℝ)
     (hx : x ∈ Set.Ioo 0 (π / 2)) :
@@ -86,40 +89,42 @@ lemma fB'_B : f '' (B' ε d) ⊆ (B ε d) := by
   have : dist p (A d) < ε := sorry
   sorry
 
-#loogle "mem", Metric.ball
+section
+variable (S : Set ℝ²)
 
-lemma ineq (S : Set ℝ²)
-    (h : f '' ((B' ε  d) ∩ S) ∩ S = ∅) :
+lemma ineq (h : f '' ((B' ε  d) ∩ S) ∩ S = ∅)
+    (pos : 0 < μ S) :
     μ ((B ε d) \ S) ≥ 0.125 * (μ (B ε d)) :=
+  have : 0 < μ S := pos
   sorry
 
-axiom Lebesgue (S : Set ℝ²) (pos : 0 < μ S) :
-    (A d) ∈ S ∧ μ (B ε d ∩ S) > 0.9 * μ (B ε d)
-
-lemma ineq_contra (S : Set ℝ²) (pos : 0 < μ S) :
+lemma ineq_contra (pos : 0 < μ S)
+    (Lebesgue : (A d) ∈ S ∧ μ (B ε d ∩ S) > 0.9 * μ (B ε d)) :
     (f '' ((B' ε  d) ∩ S) ∩ S).Nonempty := by
   by_contra h
   have h₀ := Set.not_nonempty_iff_eq_empty.mp h
   have h₁ := ineq _ _ S h₀
-  have h₂ := Lebesgue ε d S pos
   have : μ (B ε d) > μ (B ε d) := by
     calc
       μ (B ε d) = μ (B ε d ∩ S) + μ (B ε d \ S) := sorry
       _ > 0.9 * μ (B ε d) + 0.125 * μ (B ε d) := sorry
-      _ = μ (B ε d) := sorry
+      _ > μ (B ε d) := sorry
   exact (lt_self_iff_false (μ (B ε d))).mp this
 
-
-lemma exists_p (S : Set ℝ²) (pos : 0 < μ S) : ∃ p ∈ (B' ε d) ∩ S,
-    f p ∈ (B ε d) ∩ S := by
-    rcases (ineq_contra ε d S pos) with ⟨q, hq₀, hq₁⟩
+lemma exists_p (pos : 0 < μ S)
+  (Lebesgue : (A d) ∈ S ∧ μ (B ε d ∩ S) > 0.9 * μ (B ε d)) :
+    ∃ p ∈ (B' ε d) ∩ S, f p ∈ (B ε d) ∩ S := by
+    rcases (ineq_contra ε d S pos Lebesgue) with ⟨q, hq₀, hq₁⟩
     rcases hq₀ with ⟨p, hp₀, rfl⟩
     use p
-    have : p ∈ (B' ε d) :=
-      Set.mem_of_mem_inter_left hp₀
-    have : f p ∈ (B ε d) :=
-      fB'_B _ _ (Set.mem_image_of_mem _ this)
-    exact ⟨hp₀, ⟨this, hq₁⟩⟩
+    constructor
+    · exact hp₀
+    · constructor
+      · apply fB'_B
+        exact Set.mem_image_of_mem _ hp₀.1
+      · exact hq₁
+
+end
 
 end
 

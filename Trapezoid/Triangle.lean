@@ -19,7 +19,7 @@ def contained (S : Set ℝ²) : Prop :=
 def translate (v : ℝ²) : Triangle :=
   ⟨T.A + v, T.B + v, T.C + v⟩
 
-def isIsoceles : Prop :=
+def isIsosceles : Prop :=
   dist T.A T.B = dist T.A T.C ∨
   dist T.A T.B = dist T.B T.C ∨
   dist T.A T.C = dist T.B T.C

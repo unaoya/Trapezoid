@@ -23,9 +23,11 @@ lemma Lebesgue' : ∃ A ∈ S, ∃ ε ∈ Set.Ioo (0 : ℝ) 1,
     μ (ball A ε ∩ S) > 0.9 * μ (ball A ε) :=
   sorry
 
+#check exists_p
+
 theorem main (unb : S.IsUnbounded) :
     ∃ T : Triangle, T.contained S
-    ∧ T.area = 1 ∧ T.isosceles :=
+    ∧ T.area = 1 ∧ T.isIsosceles :=
   sorry
 
 end
