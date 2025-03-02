@@ -30,6 +30,11 @@ lemma vectorspan_singleton_ne_top (v : E) :
   have := finrank_span_singleton_one v
   linarith
 
+lemma vectorspan_volume (v : E) :
+    μ (Submodule.span ℝ {v}).carrier = 0 := by
+  apply MeasureTheory.Measure.addHaar_submodule
+  apply ne_top_of_lt (vectorspan_singleton_ne_top v)
+
 lemma affinespan_pair_ne_top (a b : E) :
     affineSpan ℝ {a, b} < ⊤ := by
   by_contra h
