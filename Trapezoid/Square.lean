@@ -192,8 +192,69 @@ lemma zero_mem_segment : 0 ∈ segment ℝ B D := by
     ext i
     fin_cases i <;> simp; norm_num; ring_nf
 
+lemma zero_mem_segment' : 0 ∈ segment ℝ C' A := by
+  rw [segment_eq_image]
+  simp
+  use 1 / 2
+  simp
+  constructor
+  · norm_num
+  · dsimp [C', A]
+    ext i
+    fin_cases i <;> simp; norm_num; ring_nf
+
+lemma segment_subset : segment ℝ C' 0 ⊆ segment ℝ C' A := by
+  rw [← convexHull_pair]
+  apply convexHull_min
+  · intro x hx
+    rcases hx with rfl | rfl
+    exact left_mem_segment ℝ C' A
+    exact zero_mem_segment'
+  · exact convex_segment C' A
+
+lemma segment_subset' : segment ℝ 0 A ⊆ segment ℝ C' A := by
+  rw [← convexHull_pair]
+  apply convexHull_min
+  · intro x hx
+    rcases hx with rfl | rfl
+    exact zero_mem_segment'
+    exact right_mem_segment ℝ C' A
+  · exact convex_segment C' A
+
+lemma segment_subset_union : segment ℝ C' 0 ∪ segment ℝ 0 A ⊆ segment ℝ C' A := by
+  intro x hx
+  rcases hx with hx | hx
+  · exact segment_subset hx
+  · exact segment_subset' hx
+
+-- openSegment_subset_unionを拡張して証明できる。
+-- 拡張をmathlibにpushしたい。
 lemma segment_decomp : segment ℝ C' A = segment ℝ C' 0 ∪ segment ℝ 0 A := by
-  sorry
+  apply Set.eq_of_subset_of_subset
+  · rw [← insert_endpoints_openSegment]
+    apply Set.insert_subset
+    left
+    exact left_mem_segment ℝ C' 0
+    apply Set.insert_subset
+    right
+    exact right_mem_segment ℝ 0 A
+    calc
+      openSegment ℝ C' A ⊆ insert 0 (openSegment ℝ C' 0 ∪ openSegment ℝ 0 A) := by
+        apply openSegment_subset_union
+        use 1 / 2
+        unfold C' A
+        unfold AffineMap.lineMap
+        simp
+        ext i
+        fin_cases i <;> simp; norm_num; ring_nf
+      _ ⊆ segment ℝ C' 0 ∪ segment ℝ 0 A := by
+        apply Set.insert_subset
+        left
+        exact right_mem_segment ℝ C' 0
+        apply Set.union_subset_union
+        apply openSegment_subset_segment
+        apply openSegment_subset_segment
+  · exact segment_subset_union
 
 lemma segment_sub₁ : segment ℝ C' 0 ⊆ convexJoin ℝ (segment ℝ B D) {C', A} := by
   intro x hx
@@ -415,10 +476,65 @@ theorem triangle_union_vol :
   rw [triangle_union']
   rw [square_vol]
 
--- Lによる鏡映で移す
--- Lによる鏡映は線形写像
+def F : E →ₗ[ℝ] E := (-1 : ℝ) • LinearMap.id
+
+lemma det_F : F.det = 1 := by
+  unfold F
+  rw [LinearMap.det_smul]
+  simp
+
+lemma triangle_A_hull : triangle_A = convexHull ℝ {A, B, D} := by
+  unfold triangle_A diagonal
+  have : segment ℝ A A = {A} := by simp
+  rw [← this]
+  rw [convexJoin_segments]
+  simp
+  have : {B, D, A} = ({A, B, D} : Set E) := by
+    aesop
+  rw [this]
+
+lemma triangle_C'_hull : triangle_C' = convexHull ℝ {C', B, D} := by
+  unfold triangle_C' diagonal
+  have : segment ℝ C' C' = {C'} := by simp
+  rw [← this]
+  rw [convexJoin_segments]
+  simp
+  have : {B, D, C'} = ({C', B, D} : Set E) := by
+    aesop
+  rw [this]
+
+lemma map_F_triangle : triangle_C' = F '' triangle_A := by
+  rw [triangle_A_hull]
+  rw [triangle_C'_hull]
+  rw [LinearMap.image_convexHull]
+  congr
+  simp
+  rw [Set.image_insert_eq, Set.image_pair]
+  have : F A = C' := by
+    unfold F A C'
+    simp
+    ext i
+    fin_cases i <;> simp
+  rw [this]
+  have : F B = D := by
+    unfold F B D
+    simp
+    ext i
+    fin_cases i <;> simp
+  rw [this]
+  have : F D = B := by
+    unfold F B D
+    simp
+    ext i
+    fin_cases i <;> simp
+  rw [this]
+  aesop
+
 theorem triangle_vol_eq : μ (triangle_A) = μ (triangle_C') := by
-  sorry
+  rw [map_F_triangle]
+  rw [map_linearMap_volume_eq_smul_volume F]
+  rw [det_F]
+  simp
 
 theorem triangle_vol_eq_2 :
     μ (triangle_A) = 2 := by
