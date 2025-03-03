@@ -2,6 +2,8 @@ import Mathlib.Analysis.InnerProductSpace.EuclideanDist
 import Mathlib.Analysis.Convex.Cone.InnerDual
 import Mathlib.LinearAlgebra.BilinearForm.Orthogonal
 import Mathlib.Analysis.Convex.Join
+import Mathlib.Analysis.Convex.Measure
+import Mathlib.Topology.Algebra.ContinuousAffineMap
 import Trapezoid.Subspace
 
 universe u
@@ -43,7 +45,7 @@ def diagonal := segment ℝ B D
 
 def triangle_A := convexJoin ℝ diagonal {A}
 
-def tirangle_C' := convexJoin ℝ diagonal {C'}
+def triangle_C' := convexJoin ℝ diagonal {C'}
 
 def square := convexHull ℝ {A, B, C', D}
 
@@ -154,8 +156,8 @@ lemma triangle_A_sub_Lᵣ (p : E) (hp : p ∈ triangle_A) : p ∈ Lᵣ := by
   rw [segment_symm]
   exact hx
 
-lemma tirangle_C'_sub_Lₗ (p : E) (hp : p ∈ tirangle_C') : p ∈ Lₗ := by
-  rw [tirangle_C'] at hp
+lemma tirangle_C'_sub_Lₗ (p : E) (hp : p ∈ triangle_C') : p ∈ Lₗ := by
+  rw [triangle_C'] at hp
   rw [mem_convexJoin] at hp
   rcases hp with ⟨p, hp, t, rfl, hx⟩
   apply segment_subset_l p
@@ -163,20 +165,20 @@ lemma tirangle_C'_sub_Lₗ (p : E) (hp : p ∈ tirangle_C') : p ∈ Lₗ := by
   rw [segment_symm]
   exact hx
 
-lemma triangle_inter_sub_L' (p : E) (hp₁ : p ∈ triangle_A) (hp₂ : p ∈ tirangle_C') : p ∈ L := by
+lemma triangle_inter_sub_L' (p : E) (hp₁ : p ∈ triangle_A) (hp₂ : p ∈ triangle_C') : p ∈ L := by
   rw [mem_L_iff]
   constructor
   · exact triangle_A_sub_Lᵣ p hp₁
   · exact tirangle_C'_sub_Lₗ p hp₂
 
-lemma triangle_inter_sub_L : triangle_A ∩ tirangle_C' ⊆ L := by
+lemma triangle_inter_sub_L : triangle_A ∩ triangle_C' ⊆ L := by
   intro x ⟨hx₁, hx₂⟩
   apply triangle_inter_sub_L' x hx₁ hx₂
 
-theorem triangle_inter_vol : μ (triangle_A ∩ tirangle_C') = 0 := by
+theorem triangle_inter_vol : μ (triangle_A ∩ triangle_C') = 0 := by
   rw [← nonpos_iff_eq_zero]
   calc
-    μ (triangle_A ∩ tirangle_C') ≤ μ L := MeasureTheory.measure_mono triangle_inter_sub_L
+    μ (triangle_A ∩ triangle_C') ≤ μ L := MeasureTheory.measure_mono triangle_inter_sub_L
     _ = 0 := by rw [L_eq_span]; apply vectorspan_volume B
 
 lemma zero_mem_segment : 0 ∈ segment ℝ B D := by
@@ -239,68 +241,188 @@ lemma convexJoin_segment : convexJoin ℝ (segment ℝ B D) {C', A} =
         rw [← convexJoin_singletons, convexJoin_convexJoin_convexJoin_comm]
         simp
 
-lemma triangle_union' : triangle_A ∪ tirangle_C' = square := by
-  rw [triangle_A, tirangle_C', ← convexJoin_union_right]
+lemma triangle_union' : triangle_A ∪ triangle_C' = square := by
+  rw [triangle_A, triangle_C', ← convexJoin_union_right]
   simp
   rw [diagonal, convexJoin_segment, convexJoin_segments]
   rw [square]
   refine DFunLike.congr rfl ?_
   aesop
 
-lemma union_eq_square : convexJoin ℝ (segment ℝ B D) {C', A} =
-    convexHull ℝ {A, B, C', D} := by
-  sorry
+instance : AddCommMonoid (Set E) := Set.addCommMonoid (α := E)
 
-def EuclideanSpace.toProd (p : E) : ℝ × ℝ := (p 0, p 1)
+def T_A := AffineEquiv.constVAdd ℝ E A
+
+lemma T_A_invfun : T_A.invFun = λ x => C' + x := by
+  ext x i
+  unfold T_A C' A
+  fin_cases i <;> simp
+
+lemma mu_T_A : μ square = μ (T_A.invFun ⁻¹' square) := by
+  rw [← MeasureTheory.Measure.measure_preimage_of_map_eq_self]
+  rw [T_A_invfun]
+  rw [MeasureTheory.Measure.IsAddLeftInvariant.map_add_left_eq_self C']
+  apply Convex.nullMeasurableSet
+  exact convex_convexHull ℝ {A, B, C', D}
+
+def b : Fin 2 → E := ![A + D, A + B]
+
+lemma invfun_invimg_eq_fun_img : T_A.invFun ⁻¹' square = T_A.toAffineMap '' square := by
+  simp
+
+lemma T_A_sq_eq_conv : T_A.toAffineMap '' square = convexHull ℝ (∑ i : Fin 2, {0, b i}) := by
+  unfold square
+  rw [AffineMap.image_convexHull]
+  congr
+  simp
+  ext x
+  constructor
+  · intro hx
+    rcases hx with ⟨a, ha, b, hb, rfl⟩
+    rcases ha with rfl | rfl | rfl | rfl
+    · simp
+      use b 0
+      simp
+      right
+      unfold b T_A A B D
+      ext i
+      fin_cases i <;> simp
+    · simp
+      use 0
+      simp
+      right
+      unfold b T_A
+      simp
+    · simp
+      use 0
+      simp
+      left
+      unfold T_A C'
+      ext i
+      unfold A
+      fin_cases i <;> simp
+    · simp
+      use b 0
+      simp
+      left
+      unfold T_A b
+      simp
+  · intro hx
+    rcases Set.mem_add.mp hx with ⟨y, hy, z, hz, rfl⟩
+    rcases hy with rfl | rfl <;> rcases hz with rfl | rfl <;> simp
+    · right
+      right
+      left
+      unfold T_A C'
+      simp
+      ext i
+      unfold A
+      fin_cases i <;> simp
+    · right
+      left
+      unfold b T_A
+      simp
+    · right
+      right
+      right
+      unfold b T_A
+      simp
+    · left
+      unfold b T_A
+      simp
+      unfold A B D
+      ext i
+      fin_cases i <;> simp
+
+lemma convexHull_eq_paralle : convexHull ℝ (∑ i : Fin 2, {0, b i}) = parallelepiped b :=
+  (parallelepiped_eq_convexHull b).symm
+
+lemma T_A_square : μ (T_A.invFun ⁻¹' square) = μ (parallelepiped b) := by
+  rw [← convexHull_eq_paralle]
+  rw [← T_A_sq_eq_conv]
+  rw [invfun_invimg_eq_fun_img]
+
+def S (a : ℝˣ) := DistribMulAction.toLinearEquiv ℝ E a
+
+def S_2 := S (IsUnit.unit (by norm_num : IsUnit (2 : ℝ)))
+
+lemma S_2_eq : S_2.toLinearMap = (2 : ℝ) • LinearMap.id := by
+  simp [S_2, S]
+  ext x i
+  simp
+
+lemma det_S_2 : S_2.toLinearMap.det = 4 := by
+  rw [S_2_eq]
+  rw [LinearMap.det_smul]
+  simp
+  norm_num
+
+def onb : OrthonormalBasis (Fin 2) ℝ E :=
+  {
+    repr := LinearIsometryEquiv.refl ℝ E
+  }
 
 @[simp]
-lemma toProd_fst (p : E) : p.toProd.1 = p 0 := rfl
+lemma onb_zero : onb 0 = ![1, 0] := by
+  unfold onb
+  simp
+  ext i
+  fin_cases i <;> simp <;> rfl
 
 @[simp]
-lemma toProd_snd (p : E) : p.toProd.2 = p 1 := rfl
+lemma onb_one : onb 1 = ![0, 1] := by
+  unfold onb
+  simp
+  ext i
+  fin_cases i <;> simp <;> rfl
 
-lemma square_volume (a b : E) (h : a.toProd ≤ b.toProd) :
-    μ (convexHull ℝ ((Set.univ).pi ![{a 0, b 0}, {a 1, b 1}])) =
-      ENNReal.ofReal ((b 0 - a 0) * (b 1 - a 1)) := by
-  have (s : Set (Fin 2)) :
-    (convexHull ℝ) (s.pi ![{a 0, b 0}, {a 1, b 1}]) =
-      s.pi fun i ↦ (convexHull ℝ) (![{a 0, b 0}, {a 1, b 1}] i) := by
-      rw [convexHull_pi]
-  rw [this]
-  have : μ (Set.univ.pi fun i ↦ (convexHull ℝ) (![{a 0, b 0}, {a 1, b 1}] i)) =
-      MeasureTheory.Measure.pi (fun _ => μ)
-        (Set.univ.pi fun i ↦ (convexHull ℝ) (![{a 0, b 0}, {a 1, b 1}] i)) := by
-    rfl
-  rw [this]
-  rw [MeasureTheory.Measure.pi_pi]
+lemma b_eq_scale_onb : b = onb.toBasis.map S_2 := by
   simp
-  rw [segment_eq_Icc]
-  rw [segment_eq_Icc]
-  rw [Real.volume_Icc]
-  rw [Real.volume_Icc]
-  rw [ENNReal.ofReal_mul]
+  ext i j
+  unfold b S_2 S A B D
   simp
-  rw [← toProd_fst a, ← toProd_fst b]
-  exact h.1
-  exact h.2
-  exact h.1
+  fin_cases i <;> fin_cases j <;> simp <;> norm_num
+
+lemma map_linearMap_volume_eq_smul_volume (f : E →ₗ[ℝ] E) (s : Set E) :
+    μ (f '' s) = ENNReal.ofReal |(f.det)| * μ s := by
+  have (s : Set (Fin 2 → ℝ)) :
+    (MeasureTheory.Measure.map (EuclideanSpace.measurableEquiv (Fin 2)) μ) s =
+      μ ((EuclideanSpace.measurableEquiv (Fin 2)) ⁻¹' s) := by
+    apply MeasurableEquiv.map_apply
+  simp
+
+lemma b_is_img : parallelepiped b = S_2.toLinearMap '' parallelepiped onb := by
+  rw [image_parallelepiped]
+  rw [b_eq_scale_onb]
+  simp
+  rw [Basis.coe_map]
+  simp
+
+lemma para_b_vol : μ (parallelepiped b) = 4 := by
+  rw [b_is_img]
+  rw [map_linearMap_volume_eq_smul_volume S_2.toLinearMap]
+  rw [OrthonormalBasis.volume_parallelepiped]
+  rw [det_S_2]
+  simp
+
+lemma square_vol : μ square = 4 := by
+  rw [mu_T_A]
+  rw [T_A_square]
+  rw [para_b_vol]
 
 theorem triangle_union_vol :
-    μ (convexJoin ℝ (segment ℝ B D) {A} ∪
-      convexJoin ℝ (segment ℝ B D) {C'}) = 4 := by
-  rw [triangle_union]
-  rw [union_eq_square]
-  -- apply square_volume
-  sorry
+    μ (triangle_A ∪ triangle_C') = 4 := by
+  rw [triangle_union']
+  rw [square_vol]
 
 -- Lによる鏡映で移す
-theorem triangle_vol_eq :
-    μ (convexJoin ℝ (segment ℝ B D) {A}) = μ (convexJoin ℝ (segment ℝ B D) {C'}) := by
+-- Lによる鏡映は線形写像
+theorem triangle_vol_eq : μ (triangle_A) = μ (triangle_C') := by
   sorry
 
 theorem triangle_vol_eq_2 :
-    μ (convexJoin ℝ (segment ℝ B D) {A}) = 2 := by
-  have : μ (convexJoin ℝ (segment ℝ B D) {A}) + μ (convexJoin ℝ (segment ℝ B D) {C'}) = 4 := by
+    μ (triangle_A) = 2 := by
+  have : μ (triangle_A) + μ (triangle_C') = 4 := by
     rw [← MeasureTheory.measure_union_add_inter₀]
     rw [triangle_union_vol]
     rw [triangle_inter_vol]
