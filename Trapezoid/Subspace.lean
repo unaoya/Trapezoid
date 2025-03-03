@@ -1,7 +1,4 @@
-import Trapezoid.Triangle
-
-notation "E" => EuclideanSpace ℝ (Fin 2)
-#check finTwoArrowEquiv
+import Trapezoid.Defs
 
 lemma subspace_volume_zero
     (S : AffineSubspace ℝ E) (h : S ≠ ⊤) :

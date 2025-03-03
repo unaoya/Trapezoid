@@ -5,12 +5,13 @@ open Metric Real
 
 noncomputable section
 
-variable {𝕜 E F G H : Type*} [NontriviallyNormedField 𝕜]
-    [NormedAddCommGroup E] [NormedSpace 𝕜 E]
-    [NormedAddCommGroup F] [NormedSpace 𝕜 F]
-    [NormedAddCommGroup G] [NormedSpace 𝕜 G]
-    [NormedAddCommGroup H] [NormedSpace 𝕜 H]
-    {f : E → F} (x : E) {g : F → G} {h : G → H}
+variable {𝕜 : Type*} [NontriviallyNormedField 𝕜]
+    {E₁ E₂ E₃ E₄ : Type*}
+    [NormedAddCommGroup E₁] [NormedSpace 𝕜 E₁]
+    [NormedAddCommGroup E₂] [NormedSpace 𝕜 E₂]
+    [NormedAddCommGroup E₃] [NormedSpace 𝕜 E₃]
+    [NormedAddCommGroup E₄] [NormedSpace 𝕜 E₄]
+    {f : E₁ → E₂} (x : E₁) {g : E₂ → E₃} {h : E₃ → E₄}
 
 lemma DifferentiableAt.comp₂ (hh : DifferentiableAt 𝕜 h (g (f x)))
     (hg : DifferentiableAt 𝕜 g (f x)) (hf : DifferentiableAt 𝕜 f x) :
@@ -44,8 +45,8 @@ end
 
 noncomputable section
 
-lemma ContinuousLinearMap.det_comp (E : Type) [TopologicalSpace E]
-    [AddCommGroup E] [Module ℝ E] (f g : E →L[ℝ] E) :
+lemma ContinuousLinearMap.det_comp (E₁ : Type) [TopologicalSpace E₁]
+    [AddCommGroup E₁] [Module ℝ E₁] (f g : E₁ →L[ℝ] E₁) :
     (f.comp g).det = f.det * g.det := by
   rw [← LinearMap.det_comp]
   rfl

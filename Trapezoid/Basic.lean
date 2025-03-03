@@ -14,30 +14,32 @@ noncomputable section
 
 section
 
-variable (p : ℝ²)
+variable (p : E)
 
-lemma dist_eq_r : dist O p = (polarCoord p).1 := by
-  rw [O, euc_dist_eq]
-  rfl
+lemma dist_eq_r : dist O p = (polarCoord' p).1 := by
+  -- rw [O, euc_dist_eq]
+  -- rfl
+  sorry
 
-lemma f_r (hp : g (polarCoord p) ∈ polarCoord.target) : (polarCoord (f p)).1 = (polarCoord p).1 := by
-  have : polarCoord (f p) = g (polarCoord p) := by
+lemma f_r (hp : g (polarCoord' p) ∈ polarCoord.target) :
+    (polarCoord (f' p)).1 = (polarCoord' p).1 := by
+  have : polarCoord (f' p) = g (polarCoord' p) := by
     apply polarCoord.right_inv'
     exact hp
   rw [this]
   rfl
 
-lemma f_isom (hp : g (polarCoord p) ∈ polarCoord.target) :
-    dist O p = dist O (f p) := by
+lemma f_isom (hp : g (polarCoord' p) ∈ polarCoord.target) :
+    dist O p = dist O (f'' p) := by
   repeat rw [dist_eq_r]
   exact (f_r p hp).symm
 
 def Tf : Triangle where
   A := O
   B := p
-  C := f p
+  C := f'' p
 
-lemma Tfp_isosceles (hp : g (polarCoord p) ∈ polarCoord.target) :
+lemma Tfp_isosceles (hp : g (polarCoord' p) ∈ polarCoord.target) :
     (Tf p).isIsosceles :=
   Or.symm (Or.inr (f_isom p hp))
 
@@ -66,54 +68,54 @@ variable (ε : ℝ) (d : ℝ)
   (hε : ε ∈ Set.Ioo 0 1)
   (hd : d > (C / ε) + ε)
 
-def A : ℝ² := (d,0)
-def B := ball (A d) ε
-def B' := ball (A d) (ε / 2)
-def D := ball O C
+def a : E := ![d, 0]
+def b' := ball (a d) ε
+def b'' := ball (a d) (ε / 2)
+def DD := ball O C
 
-lemma B_D_disj : Disjoint (B ε d) D := sorry
+lemma B_D_disj : Disjoint (b' ε d) DD := sorry
 
-lemma dist_p_fp (p : ℝ²) (h : p ∈ (B' ε d)) :
-    dist p (f p) < ε / 2 :=
-  let r := (polarCoord p).1
+lemma dist_p_fp (p : E) (h : p ∈ (b'' ε d)) :
+    dist p (f'' p) < ε / 2 :=
+  let r := (polarCoord' p).1
   calc
-    dist p (f p) = 2 * r * sin ((φ r) / 2) := sorry
+    dist p (f'' p) = 2 * r * sin ((φ r) / 2) := sorry
     _ < r * φ r := sorry
     _ < r * π / 2 * sin (φ r) := sorry
     _ = π / r := sorry
     _ < π * ε / C := sorry
     _ < ε / 2 := sorry
 
-lemma fB'_B : f '' (B' ε d) ⊆ (B ε d) := by
+lemma fB'_B : f'' '' (b'' ε d) ⊆ (b' ε d) := by
   intro p ⟨hp₀, hp₁, hp₂⟩
-  have : dist p (A d) < ε := sorry
+  have : dist p (a d) < ε := sorry
   sorry
 
 section
-variable (S : Set ℝ²)
+variable (S : Set E)
 
-lemma ineq (h : f '' ((B' ε  d) ∩ S) ∩ S = ∅)
+lemma ineq (h : f'' '' ((b'' ε  d) ∩ S) ∩ S = ∅)
     (pos : 0 < μ S) :
-    μ ((B ε d) \ S) ≥ 0.125 * (μ (B ε d)) :=
+    μ ((b' ε d) \ S) ≥ 0.125 * (μ (b' ε d)) :=
   have : 0 < μ S := pos
   sorry
 
 lemma ineq_contra (pos : 0 < μ S)
-    (Lebesgue : (A d) ∈ S ∧ μ (B ε d ∩ S) > 0.9 * μ (B ε d)) :
-    (f '' ((B' ε  d) ∩ S) ∩ S).Nonempty := by
+    (Lebesgue : (a d) ∈ S ∧ μ (b' ε d ∩ S) > 0.9 * μ (b' ε d)) :
+    (f'' '' ((b'' ε  d) ∩ S) ∩ S).Nonempty := by
   by_contra h
   have h₀ := Set.not_nonempty_iff_eq_empty.mp h
   have h₁ := ineq _ _ S h₀
-  have : μ (B ε d) > μ (B ε d) := by
+  have : μ (b' ε d) > μ (b' ε d) := by
     calc
-      μ (B ε d) = μ (B ε d ∩ S) + μ (B ε d \ S) := sorry
-      _ > 0.9 * μ (B ε d) + 0.125 * μ (B ε d) := sorry
-      _ > μ (B ε d) := sorry
-  exact (lt_self_iff_false (μ (B ε d))).mp this
+      μ (b' ε d) = μ (b' ε d ∩ S) + μ (b' ε d \ S) := sorry
+      _ > 0.9 * μ (b' ε d) + 0.125 * μ (b' ε d) := sorry
+      _ > μ (b' ε d) := sorry
+  exact (lt_self_iff_false (μ (b' ε d))).mp this
 
 lemma exists_p (pos : 0 < μ S)
-  (Lebesgue : (A d) ∈ S ∧ μ (B ε d ∩ S) > 0.9 * μ (B ε d)) :
-    ∃ p ∈ (B' ε d) ∩ S, f p ∈ (B ε d) ∩ S := by
+  (Lebesgue : (a d) ∈ S ∧ μ (b' ε d ∩ S) > 0.9 * μ (b' ε d)) :
+    ∃ p ∈ (b'' ε d) ∩ S, f'' p ∈ (b' ε d) ∩ S := by
     rcases (ineq_contra ε d S pos Lebesgue) with ⟨q, hq₀, hq₁⟩
     rcases hq₀ with ⟨p, hp₀, rfl⟩
     use p

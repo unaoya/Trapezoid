@@ -1,11 +1,7 @@
-import Trapezoid.Area
-import Trapezoid.Area2
-import Trapezoid.Area3
 import Trapezoid.Basic
 import Trapezoid.Defs
 import Trapezoid.Jacobian
 import Trapezoid.Main
-import Trapezoid.SimplicialComplex
 import Trapezoid.Square
 import Trapezoid.Subspace
 import Trapezoid.Triangle
