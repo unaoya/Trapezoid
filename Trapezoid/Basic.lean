@@ -17,9 +17,10 @@ section
 variable (p : E)
 
 lemma dist_eq_r : dist O p = (polarCoord' p).1 := by
-  -- rw [O, euc_dist_eq]
-  -- rfl
-  sorry
+  unfold O
+  rw [EuclideanSpace.dist_eq]
+  simp
+  rfl
 
 lemma f_r (hp : g (polarCoord' p) ∈ polarCoord.target) :
     (polarCoord (f' p)).1 = (polarCoord' p).1 := by
@@ -45,8 +46,6 @@ lemma Tfp_isosceles (hp : g (polarCoord' p) ∈ polarCoord.target) :
 
 lemma Tfp_area1 : (Tf p).area = 1 := by
   sorry
-
-#loogle "convexHull", "image"
 
 end
 

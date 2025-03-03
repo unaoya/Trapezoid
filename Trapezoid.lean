@@ -1,7 +1,9 @@
 import Trapezoid.Basic
 import Trapezoid.Defs
 import Trapezoid.Jacobian
+import Trapezoid.LA
 import Trapezoid.Main
+import Trapezoid.PolarCoord
 import Trapezoid.Square
 import Trapezoid.Subspace
 import Trapezoid.Triangle
