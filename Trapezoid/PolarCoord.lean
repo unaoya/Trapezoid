@@ -67,9 +67,10 @@ lemma polarCoord_deriv_det (x : ℝ²) (hx : x ∈ polarCoord.symm.target)
   rw [fderivAt_polarCoord x hx h₀]
   rw [fderivPolarCoordSymmEquiv]
   rw [ContinuousLinearEquiv.det_coe_symm]
-  rw [aux]
-  rw [LinearEquiv.toLinearEquiv_toContinuousLinearEquiv]
-  rw [fderivPolarCoordSymmEquiv'_det]
+  rw [← fderivPolarCoordSymmEquiv'_det _ h₀]
+  congr
+  simp only [LinearEquiv.coe_det]
+  congr
 
 lemma polarCoord_diffble (p : ℝ²) (hp : p ∈ polarCoord.symm.target)
     (h : (polarCoord p).1 ≠ 0) : DifferentiableAt ℝ polarCoord p := by

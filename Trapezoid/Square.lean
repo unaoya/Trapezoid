@@ -331,69 +331,26 @@ def b : Fin 2 → E := ![A + D, A + B]
 lemma invfun_invimg_eq_fun_img : T_A.invFun ⁻¹' square = T_A.toAffineMap '' square := by
   simp
 
+lemma pair_union {α : Type u} (s t : α) : ({s, t} : Set α) = {s} ∪ {t} := by
+  simp
+  exact Set.pair_comm s t
+
 lemma T_A_sq_eq_conv : T_A.toAffineMap '' square = convexHull ℝ (∑ i : Fin 2, {0, b i}) := by
   unfold square
   rw [AffineMap.image_convexHull]
   congr
   simp
-  ext x
-  constructor
-  · intro hx
-    rcases hx with ⟨a, ha, b, hb, rfl⟩
-    rcases ha with rfl | rfl | rfl | rfl
-    · simp
-      use b 0
-      simp
-      right
-      unfold b T_A A B D
-      ext i
-      fin_cases i <;> simp
-    · simp
-      use 0
-      simp
-      right
-      unfold b T_A
-      simp
-    · simp
-      use 0
-      simp
-      left
-      unfold T_A C'
-      ext i
-      unfold A
-      fin_cases i <;> simp
-    · simp
-      use b 0
-      simp
-      left
-      unfold T_A b
-      simp
-  · intro hx
-    rcases Set.mem_add.mp hx with ⟨y, hy, z, hz, rfl⟩
-    rcases hy with rfl | rfl <;> rcases hz with rfl | rfl <;> simp
-    · right
-      right
-      left
-      unfold T_A C'
-      simp
-      ext i
-      unfold A
-      fin_cases i <;> simp
-    · right
-      left
-      unfold b T_A
-      simp
-    · right
-      right
-      right
-      unfold b T_A
-      simp
-    · left
-      unfold b T_A
-      simp
-      unfold A B D
-      ext i
-      fin_cases i <;> simp
+  rw [Set.image_insert_eq, Set.image_insert_eq, Set.image_pair]
+  rw [pair_union 0, Set.union_add, pair_union 0, Set.add_union, Set.add_union]
+  simp
+  unfold b T_A
+  simp
+  rw [A_is_negC, D_is_negB]
+  simp
+  rw [add_assoc, add_comm (-C') B, ← add_assoc _ B]
+  simp
+  aesop
+
 
 lemma convexHull_eq_paralle : convexHull ℝ (∑ i : Fin 2, {0, b i}) = parallelepiped b :=
   (parallelepiped_eq_convexHull b).symm
